@@ -101,7 +101,7 @@ th_print_long_ls(TAR *t)
 	printf("%.10s %-8.8s %-8.8s ", modestring, username, groupname);
 
 	if (TH_ISCHR(t) || TH_ISBLK(t))
-		printf(" %3d, %3d ", th_get_devmajor(t), th_get_devminor(t));
+		printf(" %3d, %3d ", (int)th_get_devmajor(t), (int)th_get_devminor(t));
 	else
 		printf("%9ld ", (long)th_get_size(t));
 

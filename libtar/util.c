@@ -128,20 +128,20 @@ th_crc_calc(TAR *t)
 
 
 /* string-octal to integer conversion */
-int
+int64_t
 oct_to_int(char *oct)
 {
-	int i;
+	long long int i;
 
-	return sscanf(oct, "%o", &i) == 1 ? i : 0;
+	return sscanf(oct, "%llo", &i) == 1 ? (int64_t)i : 0;
 }
 
 
 /* integer to string-octal conversion, no NULL */
 void
-int_to_oct_nonull(int num, char *oct, size_t octlen)
+int_to_oct_nonull(int64_t num, char *oct, size_t octlen)
 {
-	snprintf(oct, octlen, "%*lo", octlen - 1, (unsigned long)num);
+	snprintf(oct, octlen, "%*llo", octlen - 1, (long long)num);
 	oct[octlen - 1] = ' ';
 }
 

@@ -274,7 +274,7 @@ th_write(TAR *t)
 {
 	int i, j;
 	char type2;
-	size_t sz, sz2;
+	uint64_t sz, sz2;
 	char *ptr;
 	char buf[T_BLOCKSIZE];
 
@@ -423,7 +423,7 @@ th_write(TAR *t)
 		}
 
 		memset(buf, 0, T_BLOCKSIZE);
-		snprintf(buf, T_BLOCKSIZE, "%d "SELINUX_TAG"%s\n", sz, t->th_buf.selinux_context);
+		snprintf(buf, T_BLOCKSIZE, "%d "SELINUX_TAG"%s\n", (int)sz, t->th_buf.selinux_context);
 		i = tar_block_write(t, &buf);
 		if (i != T_BLOCKSIZE)
 		{

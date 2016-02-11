@@ -208,9 +208,9 @@ tar_extract_file(TAR *t, const char *realname, const int *progress_fd)
 int
 tar_extract_regfile(TAR *t, const char *realname, const int *progress_fd)
 {
-	size_t size;
+	int64_t size, i;
+	ssize_t k;
 	int fdout;
-	int i, k;
 	char buf[T_BLOCKSIZE];
 	const char *filename;
 	char *pn;
@@ -299,8 +299,8 @@ tar_extract_regfile(TAR *t, const char *realname, const int *progress_fd)
 int
 tar_skip_regfile(TAR *t)
 {
-	int i, k;
-	size_t size;
+	int64_t size, i;
+	ssize_t k;
 	char buf[T_BLOCKSIZE];
 
 	if (!TH_ISREG(t))
@@ -624,9 +624,8 @@ int
 tar_extract_file_contents(TAR *t, void *buf, size_t *lenp)
 {
 	char block[T_BLOCKSIZE];
-	size_t size;
-	int fdout;
-	int i, k;
+	int64_t size, i;
+	ssize_t k;
 
 #ifdef DEBUG
 	printf("==> tar_extract_file_contents(t=0x%lx, buf=%p)\n", t,
@@ -640,7 +639,7 @@ tar_extract_file_contents(TAR *t, void *buf, size_t *lenp)
 	}
 
 	size = th_get_size(t);
-	if (size > *lenp)
+	if ((uint64_t)size > *lenp)
 	{
 		errno = ENOSPC;
 		return -1;
@@ -668,7 +667,7 @@ tar_extract_file_contents(TAR *t, void *buf, size_t *lenp)
 		}
 		memcpy(buf, block, i);
 	}
-	*lenp = size;
+	*lenp = (size_t)size;
 
 #ifdef DEBUG
 	printf("### done extracting contents\n");
