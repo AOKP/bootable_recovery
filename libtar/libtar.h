@@ -184,32 +184,32 @@ int th_write(TAR *t);
 #define TH_ISREG(t)	((t)->th_buf.typeflag == REGTYPE \
 			 || (t)->th_buf.typeflag == AREGTYPE \
 			 || (t)->th_buf.typeflag == CONTTYPE \
-			 || (S_ISREG((mode_t)oct_to_int((t)->th_buf.mode)) \
+			 || (S_ISREG((mode_t)oct_to_int((t)->th_buf.mode, sizeof((t)->th_buf.mode))) \
 			     && (t)->th_buf.typeflag != LNKTYPE))
 #define TH_ISLNK(t)	((t)->th_buf.typeflag == LNKTYPE)
 #define TH_ISSYM(t)	((t)->th_buf.typeflag == SYMTYPE \
-			 || S_ISLNK((mode_t)oct_to_int((t)->th_buf.mode)))
+			 || S_ISLNK((mode_t)oct_to_int((t)->th_buf.mode, sizeof((t)->th_buf.mode))))
 #define TH_ISCHR(t)	((t)->th_buf.typeflag == CHRTYPE \
-			 || S_ISCHR((mode_t)oct_to_int((t)->th_buf.mode)))
+			 || S_ISCHR((mode_t)oct_to_int((t)->th_buf.mode, sizeof((t)->th_buf.mode))))
 #define TH_ISBLK(t)	((t)->th_buf.typeflag == BLKTYPE \
-			 || S_ISBLK((mode_t)oct_to_int((t)->th_buf.mode)))
+			 || S_ISBLK((mode_t)oct_to_int((t)->th_buf.mode, sizeof((t)->th_buf.mode))))
 #define TH_ISDIR(t)	((t)->th_buf.typeflag == DIRTYPE \
-			 || S_ISDIR((mode_t)oct_to_int((t)->th_buf.mode)) \
+			 || S_ISDIR((mode_t)oct_to_int((t)->th_buf.mode, sizeof((t)->th_buf.mode))) \
 			 || ((t)->th_buf.typeflag == AREGTYPE \
 			     && strnlen((t)->th_buf.name, T_NAMELEN) \
 			     && ((t)->th_buf.name[strnlen((t)->th_buf.name, T_NAMELEN) - 1] == '/')))
 #define TH_ISFIFO(t)	((t)->th_buf.typeflag == FIFOTYPE \
-			 || S_ISFIFO((mode_t)oct_to_int((t)->th_buf.mode)))
+			 || S_ISFIFO((mode_t)oct_to_int((t)->th_buf.mode, sizeof((t)->th_buf.mode))))
 #define TH_ISLONGNAME(t)	((t)->th_buf.typeflag == GNU_LONGNAME_TYPE)
 #define TH_ISLONGLINK(t)	((t)->th_buf.typeflag == GNU_LONGLINK_TYPE)
 #define TH_ISEXTHEADER(t)	((t)->th_buf.typeflag == TH_EXT_TYPE)
 
 /* decode tar header info */
-#define th_get_crc(t) oct_to_int((t)->th_buf.chksum)
-#define th_get_size(t) oct_to_int((t)->th_buf.size)
-#define th_get_mtime(t) oct_to_int((t)->th_buf.mtime)
-#define th_get_devmajor(t) oct_to_int((t)->th_buf.devmajor)
-#define th_get_devminor(t) oct_to_int((t)->th_buf.devminor)
+#define th_get_crc(t) oct_to_int((t)->th_buf.chksum, sizeof((t)->th_buf.chksum))
+#define th_get_size(t) oct_to_int_ex((t)->th_buf.size, sizeof((t)->th_buf.size))
+#define th_get_mtime(t) oct_to_int_ex((t)->th_buf.mtime, sizeof((t)->th_buf.mtime))
+#define th_get_devmajor(t) oct_to_int((t)->th_buf.devmajor, sizeof((t)->th_buf.devmajor))
+#define th_get_devminor(t) oct_to_int((t)->th_buf.devminor, sizeof((t)->th_buf.devminor))
 #define th_get_linkname(t) ((t)->th_buf.gnu_longlink \
                             ? (t)->th_buf.gnu_longlink \
                             : (t)->th_buf.linkname)
@@ -230,9 +230,9 @@ void th_set_user(TAR *t, uid_t uid);
 void th_set_group(TAR *t, gid_t gid);
 void th_set_mode(TAR *t, unsigned int fmode);
 #define th_set_mtime(t, fmtime) \
-	int_to_oct_nonull((fmtime), (t)->th_buf.mtime, 12)
+	int_to_oct_ex((fmtime), (t)->th_buf.mtime, sizeof((t)->th_buf.mtime))
 #define th_set_size(t, fsize) \
-	int_to_oct_nonull((fsize), (t)->th_buf.size, 12)
+	int_to_oct_ex((fsize), (t)->th_buf.size, sizeof((t)->th_buf.size))
 
 /* encode everything at once (except the pathname and linkname) */
 void th_set_from_stat(TAR *t, struct stat *s);
@@ -295,14 +295,16 @@ int th_crc_calc(TAR *t);
 #define th_crc_ok(t) (th_get_crc(t) == th_crc_calc(t))
 
 /* string-octal to integer conversion */
-int64_t oct_to_int(char *oct);
+int64_t oct_to_int(char *oct, size_t len);
+
+/* string-octal or binary to integer conversion */
+int64_t oct_to_int_ex(char *oct, size_t len);
 
 /* integer to NULL-terminated string-octal conversion */
-#define int_to_oct(num, oct, octlen) \
-	snprintf((oct), (octlen), "%*llo ", (octlen) - 2, (long long)(num))
+void int_to_oct(int64_t num, char *oct, size_t octlen);
 
-/* integer to string-octal conversion, no NULL */
-void int_to_oct_nonull(int64_t num, char *oct, size_t octlen);
+/* integer to string-octal conversion, or binary as necessary */
+void int_to_oct_ex(int64_t num, char *oct, size_t octlen);
 
 
 /***** wrapper.c **********************************************************/

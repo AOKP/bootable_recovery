@@ -84,7 +84,7 @@ th_get_mode(TAR *t)
 {
 	unsigned int mode;
 
-	mode = (unsigned int)oct_to_int(t->th_buf.mode);
+	mode = (unsigned int)oct_to_int(t->th_buf.mode, sizeof(t->th_buf.mode));
 	if (! (mode & S_IFMT))
 	{
 		switch (t->th_buf.typeflag)
