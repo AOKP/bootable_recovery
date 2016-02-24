@@ -208,9 +208,9 @@ tar_extract_file(TAR *t, const char *realname, const int *progress_fd)
 int
 tar_extract_regfile(TAR *t, const char *realname, const int *progress_fd)
 {
-	size_t size, i;
+	size_t size;
 	int fdout;
-	int k;
+	int i, k;
 	char buf[T_BLOCKSIZE];
 	const char *filename;
 	char *pn;
@@ -255,7 +255,7 @@ tar_extract_regfile(TAR *t, const char *realname, const int *progress_fd)
 	}
 
 	/* extract the file */
-	for (i = size; i > 0; i -= tar_min(i, T_BLOCKSIZE))
+	for (i = size; i > 0; i -= T_BLOCKSIZE)
 	{
 		k = tar_block_read(t, buf);
 		if (k != T_BLOCKSIZE)
@@ -299,8 +299,8 @@ tar_extract_regfile(TAR *t, const char *realname, const int *progress_fd)
 int
 tar_skip_regfile(TAR *t)
 {
-	int k;
-	size_t size, i;
+	int i, k;
+	size_t size;
 	char buf[T_BLOCKSIZE];
 
 	if (!TH_ISREG(t))
@@ -310,7 +310,7 @@ tar_skip_regfile(TAR *t)
 	}
 
 	size = th_get_size(t);
-	for (i = size; i > 0; i -= tar_min(i, T_BLOCKSIZE))
+	for (i = size; i > 0; i -= T_BLOCKSIZE)
 	{
 		k = tar_block_read(t, buf);
 		if (k != T_BLOCKSIZE)
