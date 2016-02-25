@@ -75,6 +75,12 @@ BUSYBOX_LINKS := $(shell cat $(LOCAL_PATH)/../busybox/busybox-full.links)
 #  dosfstools provides equivalents of mkdosfs mkfs.vfat
 BUSYBOX_EXCLUDE := tune2fs mke2fs mkdosfs mkfs.vfat gzip gunzip
 
+# Having /sbin/modprobe present on 32 bit devices with can cause a massive
+# performance problem if the kernel has CONFIG_MODULES=y
+ifeq ($(filter arm64 x86_64, $(TARGET_ARCH)),)
+    BUSYBOX_EXCLUDE += modprobe
+endif
+
 BUSYBOX_TOOLS := $(filter-out $(BUSYBOX_EXCLUDE), $(notdir $(BUSYBOX_LINKS)))
 
 endif
