@@ -1,5 +1,5 @@
 /*
-	Copyright 2012 bigbiff/Dees_Troy TeamWin
+	Copyright 2016 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "libtar/libtar.h"
+#include "progresstracking.hpp"
 
 using namespace std;
 
@@ -41,8 +42,8 @@ class twrpTar {
 public:
 	twrpTar();
 	virtual ~twrpTar();
-	int createTarFork(const unsigned long long *overall_size, const unsigned long long *other_backups_size, pid_t &fork_pid);
-	int extractTarFork(const unsigned long long *overall_size, unsigned long long *other_backups_size);
+	int createTarFork(ProgressTracking *progress, pid_t &fork_pid);
+	int extractTarFork(ProgressTracking *progress);
 	void setfn(string fn);
 	void setdir(string dir);
 	void setsize(unsigned long long backup_size);
@@ -83,6 +84,7 @@ private:
 	unsigned long long Total_Backup_Size;
 	bool include_root_dir;
 	TAR *t;
+	tartype_t tar_type; // Only used in createTar() but variable must persist while the tar is open
 	int fd;
 	pid_t pigz_pid;
 	pid_t oaes_pid;

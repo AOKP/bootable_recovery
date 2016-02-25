@@ -4,6 +4,8 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
     twrpTarMain.cpp \
+    ../gui/twmsg.cpp \
+    ../progresstracking.cpp \
     ../tarWrite.c \
     ../twrp-functions.cpp \
     ../twrpDU.cpp \
@@ -12,7 +14,6 @@ LOCAL_SRC_FILES:= \
 LOCAL_CFLAGS:= -g -c -W -DBUILD_TWRPTAR_MAIN -DHAVE_SELINUX
 
 LOCAL_C_INCLUDES := \
-    bionic \
     external/libselinux/include
 
 LOCAL_STATIC_LIBRARIES := \
@@ -41,6 +42,8 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
     twrpTarMain.cpp \
+    ../gui/twmsg.cpp \
+    ../progresstracking.cpp \
     ../tarWrite.c \
     ../twrp-functions.cpp \
     ../twrpDU.cpp \
@@ -49,8 +52,8 @@ LOCAL_SRC_FILES:= \
 LOCAL_CFLAGS:= -g -c -W -DBUILD_TWRPTAR_MAIN -DHAVE_SELINUX
 
 LOCAL_C_INCLUDES := \
-    bionic \
     external/libselinux/include
+
 LOCAL_SHARED_LIBRARIES := \
     libc \
     libselinux \
