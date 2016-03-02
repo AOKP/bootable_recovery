@@ -83,6 +83,7 @@
 		<string name="file">Файл:</string>
 		<string name="zip_sig_chk">Проверка подписи Zip</string>
 		<string name="inject_twrp_chk">Интегрировать TWRP после установки</string>
+		<string name="install_reboot_chk">Автоматическая перезагрузка после установки</string>
 		<string name="options_hdr">Опции</string>
 		<string name="confirm_flash_hdr">Подтвердите установку</string>
 		<string name="zip_queue">Очередь:</string>
@@ -666,6 +667,7 @@
 		<string name="cancel_sideload">Отмена ADB Sideload...</string>
 		<string name="change_fs_err">Ошибка при изменении файловой системы.</string>
 		<string name="theme_ver_err">Версия темы не соответствует версии TWRP. Используется тема по умолчанию.</string>
+		<string name="install_reboot">Устройство будет перезагружено через 5 секунд.</string>
 		<string name="up_a_level">(в родительский каталог)</string>
 	</resources>
 </language>
