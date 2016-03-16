@@ -1540,7 +1540,7 @@ TWPartition* TWPartitionManager::Find_Next_Storage(string Path, bool Exclude_Dat
 	if (!Path.empty()) {
 		string Search_Path = TWFunc::Get_Root_Path(Path);
 		for (; iter != Partitions.end(); iter++) {
-			if (Exclude_Data_Media && (*iter)->Has_Data_Media) {
+			if ((*iter)->Mount_Point == Search_Path) {
 				iter++;
 				break;
 			}
@@ -2432,4 +2432,17 @@ void TWPartitionManager::Decrypt_Adopted() {
 	LOGINFO("Decrypt_Adopted: no crypto support\n");
 	return;
 #endif
+}
+
+void TWPartitionManager::Remove_Partition_By_Path(string Path) {
+	std::vector<TWPartition*>::iterator iter;
+	string Local_Path = TWFunc::Get_Root_Path(Path);
+
+	for (iter = Partitions.begin(); iter != Partitions.end(); iter++) {
+		if ((*iter)->Mount_Point == Local_Path || (!(*iter)->Symlink_Mount_Point.empty() && (*iter)->Symlink_Mount_Point == Local_Path)) {
+			LOGINFO("Found and erasing '%s' from partition list\n", Local_Path.c_str());
+			Partitions.erase(iter);
+			return;
+		}
+	}
 }

@@ -279,15 +279,15 @@ else
 endif
 ifneq ($(TW_NO_EXFAT), true)
     LOCAL_ADDITIONAL_DEPENDENCIES += mkfs.exfat fsck.exfat
+    ifneq ($(TW_NO_EXFAT_FUSE), true)
+        LOCAL_ADDITIONAL_DEPENDENCIES += mount.exfat
+    endif
 endif
 ifeq ($(BOARD_HAS_NO_REAL_SDCARD),)
     LOCAL_ADDITIONAL_DEPENDENCIES += sgdisk
 endif
 ifneq ($(TW_EXCLUDE_ENCRYPTED_BACKUPS), true)
     LOCAL_ADDITIONAL_DEPENDENCIES += openaes ../openaes/LICENSE
-endif
-ifneq ($(TW_NO_EXFAT_FUSE), true)
-    LOCAL_ADDITIONAL_DEPENDENCIES += mount.exfat
 endif
 ifeq ($(TW_INCLUDE_FB2PNG), true)
     LOCAL_ADDITIONAL_DEPENDENCIES += fb2png
