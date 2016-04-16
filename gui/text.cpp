@@ -1,5 +1,5 @@
 /*
-	Copyright 2015 TeamWin
+	Copyright 2016 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -38,7 +38,6 @@ GUIText::GUIText(xml_node<>* node)
 	mVarChanged = 0;
 	mFontHeight = 0;
 	maxWidth = 0;
-	charSkip = 0;
 	scaleWidth = true;
 	isHighlighted = false;
 	mText = "";
@@ -99,22 +98,18 @@ int GUIText::Render(void)
 		return -1;
 
 	mLastValue = gui_parse_text(mText);
-	string displayValue = mLastValue;
-
-	if (charSkip)
-		displayValue.erase(0, charSkip);
 
 	mVarChanged = 0;
 
 	int x = mRenderX, y = mRenderY;
-	int width = gr_ttf_measureEx(displayValue.c_str(), fontResource);
+	int width = gr_ttf_measureEx(mLastValue.c_str(), fontResource);
 
 	if (isHighlighted)
 		gr_color(mHighlightColor.red, mHighlightColor.green, mHighlightColor.blue, mHighlightColor.alpha);
 	else
 		gr_color(mColor.red, mColor.green, mColor.blue, mColor.alpha);
 
-	gr_textEx_scaleW(mRenderX, mRenderY, displayValue.c_str(), fontResource, maxWidth, mPlacement, scaleWidth);
+	gr_textEx_scaleW(mRenderX, mRenderY, mLastValue.c_str(), fontResource, maxWidth, mPlacement, scaleWidth);
 
 	return 0;
 }
@@ -169,13 +164,13 @@ int GUIText::NotifyVarChange(const std::string& varName, const std::string& valu
 int GUIText::SetMaxWidth(unsigned width)
 {
 	maxWidth = width;
+	if (!maxWidth)
+		scaleWidth = false;
 	mVarChanged = 1;
 	return 0;
 }
 
-int GUIText::SkipCharCount(unsigned skip)
+void GUIText::SetText(string newtext)
 {
-	charSkip = skip;
-	mVarChanged = 1;
-	return 0;
+	mText = newtext;
 }

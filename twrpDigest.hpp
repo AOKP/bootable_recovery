@@ -1,5 +1,5 @@
 /*
-	Copyright 2012 bigbiff/Dees_Troy TeamWin
+	Copyright 2016 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ using namespace std;
 class twrpDigest
 {
 public:
-	void setfn(string fn);
+	void setfn(const string& fn);
 	int computeMD5(void);
 	int verify_md5digest(void);
 	int write_md5digest(void);
