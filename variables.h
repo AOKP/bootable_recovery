@@ -17,7 +17,7 @@
 #ifndef _VARIABLES_HEADER_
 #define _VARIABLES_HEADER_
 
-#define TW_VERSION_STR              "3.0.M2-0"
+#define TW_VERSION_STR              "3.0.M3-0"
 
 #define TW_USE_COMPRESSION_VAR      "tw_use_compression"
 #define TW_FILENAME                 "tw_filename"
@@ -70,8 +70,9 @@
 #define TW_FORCE_MD5_CHECK_VAR      "tw_force_md5_check"
 #define TW_SKIP_MD5_CHECK_VAR       "tw_skip_md5_check"
 #define TW_SKIP_MD5_GENERATE_VAR    "tw_skip_md5_generate"
+#define TW_DISABLE_FREE_SPACE_VAR   "tw_disable_free_space"
 #define TW_SIGNED_ZIP_VERIFY_VAR    "tw_signed_zip_verify"
-#define TW_REBOOT_AFTER_FLASH_VAR   "tw_reboot_after_flash_option"
+#define TW_INSTALL_REBOOT_VAR       "tw_install_reboot"
 #define TW_TIME_ZONE_VAR            "tw_time_zone"
 #define TW_RM_RF_VAR                "tw_rm_rf"
 

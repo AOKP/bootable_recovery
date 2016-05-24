@@ -43,6 +43,69 @@ struct flag_list {
 	unsigned flag;
 };
 
+enum TW_FSTAB_FLAGS {
+	TWFLAG_DEFAULTS, // Retain position
+	TWFLAG_ANDSEC,
+	TWFLAG_BACKUP,
+	TWFLAG_BACKUPNAME,
+	TWFLAG_BLOCKSIZE,
+	TWFLAG_CANBEWIPED,
+	TWFLAG_CANENCRYPTBACKUP,
+	TWFLAG_DISPLAY,
+	TWFLAG_ENCRYPTABLE,
+	TWFLAG_FLASHIMG,
+	TWFLAG_FORCEENCRYPT,
+	TWFLAG_IGNOREBLKID,
+	TWFLAG_LENGTH,
+	TWFLAG_MOUNTTODECRYPT,
+	TWFLAG_REMOVABLE,
+	TWFLAG_RETAINLAYOUTVERSION,
+	TWFLAG_RW,
+	TWFLAG_SETTINGSSTORAGE,
+	TWFLAG_STORAGE,
+	TWFLAG_STORAGENAME,
+	TWFLAG_SUBPARTITIONOF,
+	TWFLAG_SYMLINK,
+	TWFLAG_USERDATAENCRYPTBACKUP,
+	TWFLAG_USERMRF,
+	TWFLAG_WIPEDURINGFACTORYRESET,
+	TWFLAG_WIPEINGUI,
+};
+
+/* Flags without a trailing '=' are considered dual format flags and can be
+ * written as either 'flagname' or 'flagname=', where the character following
+ * the '=' is Y,y,1 for true and false otherwise.
+ */
+const struct flag_list tw_flags[] = {
+	{ "andsec",                 TWFLAG_ANDSEC },
+	{ "backup",                 TWFLAG_BACKUP },
+	{ "backupname=",            TWFLAG_BACKUPNAME },
+	{ "blocksize=",             TWFLAG_BLOCKSIZE },
+	{ "canbewiped",             TWFLAG_CANBEWIPED },
+	{ "canencryptbackup",       TWFLAG_CANENCRYPTBACKUP },
+	{ "defaults",               TWFLAG_DEFAULTS },
+	{ "display=",               TWFLAG_DISPLAY },
+	{ "encryptable=",           TWFLAG_ENCRYPTABLE },
+	{ "flashimg",               TWFLAG_FLASHIMG },
+	{ "forceencrypt=",          TWFLAG_FORCEENCRYPT },
+	{ "ignoreblkid",            TWFLAG_IGNOREBLKID },
+	{ "length=",                TWFLAG_LENGTH },
+	{ "mounttodecrypt",         TWFLAG_MOUNTTODECRYPT },
+	{ "removable",              TWFLAG_REMOVABLE },
+	{ "retainlayoutversion",    TWFLAG_RETAINLAYOUTVERSION },
+	{ "rw",                     TWFLAG_RW },
+	{ "settingsstorage",        TWFLAG_SETTINGSSTORAGE },
+	{ "storage",                TWFLAG_STORAGE },
+	{ "storagename=",           TWFLAG_STORAGENAME },
+	{ "subpartitionof=",        TWFLAG_SUBPARTITIONOF },
+	{ "symlink=",               TWFLAG_SYMLINK },
+	{ "userdataencryptbackup",  TWFLAG_USERDATAENCRYPTBACKUP },
+	{ "usermrf",                TWFLAG_USERMRF },
+	{ "wipeduringfactoryreset", TWFLAG_WIPEDURINGFACTORYRESET },
+	{ "wipeingui",              TWFLAG_WIPEINGUI },
+	{ 0,                        0 },
+};
+
 const struct flag_list mount_flags[] = {
 	{ "noatime",    MS_NOATIME },
 	{ "noexec",     MS_NOEXEC },
@@ -64,13 +127,14 @@ const struct flag_list mount_flags[] = {
 
 // We support a very small subset of fs_mgr flags
 // See system/core/fs_mgr/fs_mgr_fstab.c for the full list
+#define MF_DEFAULTS     0x0
 #define MF_CRYPT        0x4
 #define MF_LENGTH       0x20
 
 const struct flag_list fs_mgr_flags[] = {
 	{ "encryptable=", MF_CRYPT },
 	{ "length=",      MF_LENGTH },
-	{ "defaults",     0 },
+	{ "defaults",     MF_DEFAULTS },
 	{ 0,              0 },
 };
 
@@ -119,6 +183,7 @@ public:
 	int Check_Lifetime_Writes();
 	int Decrypt_Adopted();
 	void Revert_Adopted();
+	void Partition_Post_Processing(bool Display_Error);                       // Apply partition specific settings after fstab processed
 
 public:
 	string Current_File_System;                                               // Current file system
@@ -134,12 +199,16 @@ protected:
 	void Setup_Data_Media();                                                  // Sets up a partition as a /data/media emulated storage partition
 
 private:
-	bool Process_Fstab_Line(string Line, bool Display_Error);                 // Processes a fstab line
+	bool Process_Fstab_Line(const char *fstab_line, bool Display_Error);      // Processes a fstab line
+	void Setup_Data_Partition(bool Display_Error);                            // Setup data partition after fstab processed
+	void Setup_Cache_Partition(bool Display_Error);                           // Setup cache partition after fstab processed
 	void Find_Actual_Block_Device();                                          // Determines the correct block device and stores it in Actual_Block_Device
 
-	bool Process_Flags(string Flags, bool Display_Error);                     // Process custom fstab flags
-	bool Process_FS_Flags(string& Options, int& Flags);                       // Process standard fstab fs flags
-	void Process_Fsmgr_Flags(const char *str);                                // Process a select few fs_mgr flags
+	void Apply_TW_Flag(const unsigned flag, const char* str, const bool val); // Apply custom twrp fstab flags
+	void Process_TW_Flags(char *flags, bool Display_Error);                   // Process custom twrp fstab flags
+	void Process_FS_Flags(const char *str);                                   // Process standard fstab fs flags
+	void Apply_Fsmgr_Flag(const unsigned flag, const char* str, const bool val); // Apply fs_mgr flags
+	void Process_Fsmgr_Flags(const char *str, bool Display_Error);            // Process a select few fs_mgr flags
 	bool Is_File_System(string File_System);                                  // Checks to see if the file system given is considered a file system
 	bool Is_Image(string File_System);                                        // Checks to see if the file system given is considered an image
 	void Setup_File_System(bool Display_Error);                               // Sets defaults for a file system partition
@@ -301,7 +370,6 @@ private:
 	bool Backup_Partition(TWPartition* Part, const string& Backup_Folder, bool generate_md5, unsigned long *img_time, unsigned long *file_time, ProgressTracking *progress);
 	bool Restore_Partition(TWPartition* Part, const string& Restore_Name, ProgressTracking *progress);
 	void Output_Partition(TWPartition* Part);                                 // Outputs partition details to the log
-	string Regenerate_Mount_Flags(TWPartition* Part);                         // Regenerates string representation of fstab flags
 	TWPartition* Find_Partition_By_MTP_Storage_ID(unsigned int Storage_ID);   // Returns a pointer to a partition based on MTP Storage ID
 	bool Add_Remove_MTP_Storage(TWPartition* Part, int message_type);         // Adds or removes an MTP Storage partition
 	TWPartition* Find_Next_Storage(string Path, bool Exclude_Data_Media);

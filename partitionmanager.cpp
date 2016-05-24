@@ -72,7 +72,7 @@ int TWPartitionManager::Process_Fstab(string Fstab_Filename, bool Display_Error)
 	TWPartition* settings_partition = NULL;
 	TWPartition* andsec_partition = NULL;
 	unsigned int storageid = 1 << 16;	// upper 16 bits are for physical storage device, we pretend to have only one
-	string LastPartition = "";
+	string Last_Mount_Point = "";
 
 	fstabFile = fopen(Fstab_Filename.c_str(), "rt");
 	if (fstabFile == NULL) {
@@ -84,38 +84,42 @@ int TWPartitionManager::Process_Fstab(string Fstab_Filename, bool Display_Error)
 		if (fstab_line[0] != '/')
 			continue;
 
-		if (fstab_line[strlen(fstab_line) - 1] != '\n')
-			fstab_line[strlen(fstab_line)] = '\n';
 		TWPartition* partition = new TWPartition();
-		string line = fstab_line;
-		memset(fstab_line, 0, sizeof(fstab_line));
-
-		if (partition->Process_Fstab_Line(line, Display_Error)) {
-			if (LastPartition == partition->Actual_Block_Device) {
+		if (partition->Process_Fstab_Line(fstab_line, Display_Error)) {
+			if (Last_Mount_Point == partition->Mount_Point) {
 				delete partition;
 				continue;
 			}
-			if (partition->Is_Storage) {
-				++storageid;
-				partition->MTP_Storage_ID = storageid;
-			}
-			if (!settings_partition && partition->Is_Settings_Storage && partition->Is_Present) {
-				settings_partition = partition;
-			} else {
-				partition->Is_Settings_Storage = false;
-			}
-			if (!andsec_partition && partition->Has_Android_Secure && partition->Is_Present) {
-				andsec_partition = partition;
-			} else {
-				partition->Has_Android_Secure = false;
-			}
-			LastPartition = partition->Actual_Block_Device;
+			Last_Mount_Point = partition->Mount_Point;
 			Partitions.push_back(partition);
 		} else {
 			delete partition;
 		}
+
+		memset(fstab_line, 0, sizeof(fstab_line));
 	}
 	fclose(fstabFile);
+
+	std::vector<TWPartition*>::iterator iter;
+	for (iter = Partitions.begin(); iter != Partitions.end(); iter++) {
+		(*iter)->Partition_Post_Processing(Display_Error);
+
+		if ((*iter)->Is_Storage) {
+			++storageid;
+			(*iter)->MTP_Storage_ID = storageid;
+		}
+
+		if (!settings_partition && (*iter)->Is_Settings_Storage && (*iter)->Is_Present)
+			settings_partition = (*iter);
+		else
+			(*iter)->Is_Settings_Storage = false;
+
+		if (!andsec_partition && (*iter)->Has_Android_Secure && (*iter)->Is_Present)
+			andsec_partition = (*iter);
+		else
+			(*iter)->Has_Android_Secure = false;
+	}
+
 	if (!datamedia && !settings_partition && Find_Partition_By_Path("/sdcard") == NULL && Find_Partition_By_Path("/internal_sd") == NULL && Find_Partition_By_Path("/internal_sdcard") == NULL && Find_Partition_By_Path("/emmc") == NULL) {
 		// Attempt to automatically identify /data/media emulated storage devices
 		TWPartition* Dat = Find_Partition_By_Path("/data");
@@ -130,7 +134,6 @@ int TWPartitionManager::Process_Fstab(string Fstab_Filename, bool Display_Error)
 		}
 	}
 	if (!settings_partition) {
-		std::vector<TWPartition*>::iterator iter;
 		for (iter = Partitions.begin(); iter != Partitions.end(); iter++) {
 			if ((*iter)->Is_Storage) {
 				settings_partition = (*iter);
@@ -180,30 +183,11 @@ int TWPartitionManager::Process_Fstab(string Fstab_Filename, bool Display_Error)
 	return true;
 }
 
-string TWPartitionManager::Regenerate_Mount_Flags(TWPartition* Part) {
-	int i = 0;
-	string flags = "";
-
-	for (i = 0; mount_flags[i].name; i++) {
-		if (mount_flags[i].flag != 0 && (Part->Mount_Flags & mount_flags[i].flag)) {
-			if (!flags.empty())
-				flags += ",";
-			flags += std::string(mount_flags[i].name);
-		}
-	}
-
-	if (flags.empty())
-		flags = "defaults";
-
-	return flags;
-}
-
 int TWPartitionManager::Write_Fstab(void) {
 	FILE *fp;
 	std::vector<TWPartition*>::iterator iter;
 	string Line;
 	string Device;
-	string Flags;
 	string Options;
 
 	fp = fopen("/etc/fstab", "w");
@@ -214,9 +198,8 @@ int TWPartitionManager::Write_Fstab(void) {
 	for (iter = Partitions.begin(); iter != Partitions.end(); iter++) {
 		if ((*iter)->Can_Be_Mounted) {
 			Device = (*iter)->Actual_Block_Device.empty() ? (*iter)->Primary_Block_Device : (*iter)->Actual_Block_Device;
-			Flags = Regenerate_Mount_Flags((*iter));
 			Options = "defaults";
-			Line = Device + " " + (*iter)->Mount_Point + " " + (*iter)->Current_File_System + " " + Flags + " " + Options + "\n";
+			Line = Device + " " + (*iter)->Mount_Point + " " + (*iter)->Current_File_System + " " + (*iter)->Mount_Options + " " + Options + "\n";
 			fputs(Line.c_str(), fp);
 		}
 		// Handle subpartition tracking
@@ -347,8 +330,6 @@ void TWPartitionManager::Output_Partition(TWPartition* Part) {
 	if (!Part->MTD_Name.empty())
 		printf("   MTD_Name: %s\n", Part->MTD_Name.c_str());
 	printf("   Backup_Method: %s\n", Part->Backup_Method_By_Name().c_str());
-	if (Part->Mount_Flags)
-		printf("   Mount_Flags: %s\n", Regenerate_Mount_Flags(Part).c_str());
 	if (!Part->Mount_Options.empty())
 		printf("   Mount_Options: %s\n", Part->Mount_Options.c_str());
 	if (Part->MTP_Storage_ID)
@@ -758,7 +739,7 @@ int TWPartitionManager::Run_Backup(void) {
 		return false;
 	}
 
-	DataManager::GetValue("tw_disable_free_space", disable_free_space_check);
+	DataManager::GetValue(TW_DISABLE_FREE_SPACE_VAR, disable_free_space_check);
 	if (!disable_free_space_check) {
 		if (free_space - (32 * 1024 * 1024) < total_bytes) {
 			// We require an extra 32MB just in case
