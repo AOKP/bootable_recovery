@@ -245,15 +245,15 @@ void ScreenRecoveryUI::SetColor(UIElement e) {
         case HEADER:
             gr_color(247, 0, 6, 255);
             break;
-        case MENU:
         case MENU_SEL_BG:
             gr_color(84, 81, 80, 255);
             break;
         case MENU_SEL_BG_ACTIVE:
             gr_color(138, 135, 134, 255);
             break;
+        case MENU:
         case MENU_SEL_FG:
-            gr_color(22, 124, 128, 255);
+            gr_color(169, 0, 79, 255);
             break;
         case LOG:
             gr_color(196, 196, 196, 255);
