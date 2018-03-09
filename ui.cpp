@@ -92,8 +92,8 @@ RecoveryUI::RecoveryUI()
   if (propval[0] == '_') {
       boot_slot_ = std::string("Slot ") + &propval[1];
   }
-  property_get("ro.lineage.version", propval, "(unknown)");
-  lineage_version_ = std::string("LineageOS ") + propval;
+  property_get("ro.aokp.version", propval, "(unknown)");
+  lineage_version_ = std::string("AOKP ") + propval;
 
   pthread_mutex_init(&event_queue_mutex, nullptr);
   pthread_cond_init(&event_queue_cond, nullptr);
