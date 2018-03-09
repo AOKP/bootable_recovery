@@ -80,8 +80,8 @@ RecoveryUI::RecoveryUI()
   char propval[PROPERTY_VALUE_MAX];
   property_get("ro.build.version.release", propval, "(unknown)");
   android_version_ = std::string("Android ") + propval;
-  property_get("ro.lineage.version", propval, "(unknown)");
-  lineage_version_ = std::string("LineageOS ") + propval;
+  property_get("ro.aokp.version", propval, "(unknown)");
+  lineage_version_ = std::string("AOKP ") + propval;
 
   pthread_mutex_init(&event_queue_mutex, nullptr);
   pthread_cond_init(&event_queue_cond, nullptr);

@@ -310,7 +310,7 @@ void ScreenRecoveryUI::draw_foreground_locked(int& y) {
   }
 }
 
-/* Lineage teal: #167c80 */
+/* AOKP pink: #e4418b */
 void ScreenRecoveryUI::SetColor(UIElement e) const {
   switch (e) {
     case STATUSBAR:
@@ -330,7 +330,7 @@ void ScreenRecoveryUI::SetColor(UIElement e) const {
       gr_color(138, 135, 134, 255);
       break;
     case MENU_SEL_FG:
-      gr_color(0x16, 0x7c, 0x80, 255);
+      gr_color(0xe4, 0x41, 0x8b, 255);
       break;
     case LOG:
       gr_color(196, 196, 196, 255);
